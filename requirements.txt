@@ -1,0 +1,3 @@
+# Python dependencies for Graphical Text Renderer
+# Add dependencies here as needed
+
