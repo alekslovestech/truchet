@@ -60,9 +60,7 @@ def draw_cell_contours(ch: TileChar, size: int) -> str:
 
 def draw_cell_fills(ch: TileChar, cell_size: int, isEven: bool) -> str:
     """
-    SVG for filled regions in one cell. For now: top and bottom triangles
-    (top-left→center→top-right and bottom-left→center→bottom-right).
-    Fill is fainter than the contour stroke (#111).
+    SVG for filled regions in one cell. 
     """
     if ch == " " or cell_size <= 0:
         return ""
