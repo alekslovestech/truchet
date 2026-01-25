@@ -8,6 +8,24 @@ from pathlib import Path
 from letter_glyph import LetterGlyph
 from tiles import Direction, TileChar, available_directions, is_tile_char
 
+# Fill and stroke colors for SVG elements
+FILL_TRIANGLE = "#444"
+STROKE_CONTOUR = "#111"
+STROKE_GRID = "#ccc"
+
+
+def make_line(x1: float, y1: float, x2: float, y2: float) -> str:
+    """Return an SVG line element from (x1,y1) to (x2,y2)."""
+    return f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}"/>'
+
+
+def make_triangle_points(
+    x1: float, y1: float, x2: float, y2: float, x3: float, y3: float
+) -> str:
+    """Return an SVG polygon element for a triangle with the three given vertices."""
+    pts = f"{x1},{y1} {x2},{y2} {x3},{y3}"
+    return f'<polygon points="{pts}" fill="{FILL_TRIANGLE}" stroke="none"/>'
+
 
 def draw_cell_contours(ch: TileChar, size: int) -> str:
     """
@@ -20,10 +38,10 @@ def draw_cell_contours(ch: TileChar, size: int) -> str:
     c = size / 2
 
     def half(x: float, y: float) -> str:
-        return f'<line x1="{c}" y1="{c}" x2="{x}" y2="{y}"/>'
+        return make_line(c, c, x, y)
 
-    diag_back = f'<line x1="0" y1="0" x2="{size}" y2="{size}"/>'
-    diag_fwd = f'<line x1="{size}" y1="0" x2="0" y2="{size}"/>'
+    diag_back = make_line(0, 0, size, size)
+    diag_fwd = make_line(size, 0, 0, size)
 
     match ch:
         case "X":
@@ -48,21 +66,21 @@ def draw_cell_fills(ch: TileChar, cell_size: int, isEven: bool) -> str:
     """
     if ch == " " or cell_size <= 0:
         return ""
-    c = cell_size / 2
+    mid = cell_size / 2
     output = ""
     directions = available_directions(ch)
     if isEven:
         if Direction.LEFT in directions:
             # Left triangle: left edge to center to bottom edge
-            output += f'<polygon points="0,0 {c},{c} 0,{cell_size}" fill="#444" stroke="none"/>'
+            output += make_triangle_points(0, 0, mid, mid, 0, cell_size)
         if Direction.RIGHT in directions:
             # Right triangle: right edge to center to top edge
-            output += f'<polygon points="{cell_size},0 {c},{c} {cell_size},{cell_size}" fill="#444" stroke="none"/>'
+            output += make_triangle_points(cell_size, 0, mid, mid, cell_size, cell_size)
     else:
         if Direction.TOP in directions:
-            output += f'<polygon points="0,0 {c},{c} {cell_size},0" fill="#444" stroke="none"/>'
+            output += make_triangle_points(0, 0, mid, mid, cell_size, 0)
         if Direction.BOTTOM in directions:
-            output += f'<polygon points="0,{cell_size} {c},{c} {cell_size},{cell_size}" fill="#444" stroke="none"/>'
+            output += make_triangle_points(0, cell_size, mid, mid, cell_size, cell_size)
     return output
 
 
@@ -83,12 +101,12 @@ def lines_to_svg(lines: list[str], cell_size: int = 20) -> str:
     grid_lines = []
     for i in range(cols + 1):
         x = i * cell_size
-        grid_lines.append(f'<line x1="{x}" y1="0" x2="{x}" y2="{height}"/>')
+        grid_lines.append(make_line(x, 0, x, height))
     for j in range(rows + 1):
         y = j * cell_size
-        grid_lines.append(f'<line x1="0" y1="{y}" x2="{width}" y2="{y}"/>')
+        grid_lines.append(make_line(0, y, width, y))
     grid = (
-        '<g stroke="#ccc" stroke-width="0.5" fill="none">'
+        f'<g stroke="{STROKE_GRID}" stroke-width="0.5" fill="none">'
         + "".join(grid_lines)
         + "</g>"
     )
@@ -99,10 +117,11 @@ def lines_to_svg(lines: list[str], cell_size: int = 20) -> str:
             x = c * cell_size
             y = r * cell_size
             isEven = (r + c) % 2 == 0
-            inner = draw_cell_fills(ch, cell_size, isEven) + draw_cell_contours(ch, cell_size)
+            tileChar: TileChar = ch  # type: ignore
+            inner = draw_cell_fills(tileChar, cell_size, isEven) + draw_cell_contours(tileChar, cell_size)
             if inner:
                 cells.append(
-                    f'<g transform="translate({x},{y})" stroke="#111" fill="none" stroke-width="1">'
+                    f'<g transform="translate({x},{y})" stroke="{STROKE_CONTOUR}" fill="none" stroke-width="1">'
                     + inner
                     + "</g>"
                 )
