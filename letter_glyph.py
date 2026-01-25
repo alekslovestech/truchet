@@ -3,7 +3,7 @@ LetterGlyph: loading and transforming ASCII art glyphs for letters.
 """
 from pathlib import Path
 
-from tiles import inverse
+from tiles import inverse, TileChar
 
 # Unframed: 5 rows, min 3 cols per row
 UNFRAMED_ROWS = 5
@@ -20,14 +20,14 @@ class LetterGlyph:
     """
 
     def __init__(self, lines: list[str]) -> None:
-        self._lines = lines
+        self._lines = lines  # type: list[str]  # each string is a row of TileChar chars
 
     @property
     def lines(self) -> list[str]:
         return self._lines
 
     @classmethod
-    def load(cls, char: str) -> "LetterGlyph":
+    def load(cls, char: TileChar) -> "LetterGlyph":
         """
         Load the glyph for a letter from the data folder.
 
@@ -46,7 +46,8 @@ class LetterGlyph:
         with open(letter_file, "r", encoding="utf-8") as f:
             raw = f.readlines()
 
-        lines = [line.rstrip("\n\r") for line in raw]
+        # Each line is intended to be a str of TileChar
+        lines: list[str] = [line.rstrip("\n\r") for line in raw]
         while lines and not lines[-1]:
             lines.pop()
 
@@ -89,7 +90,7 @@ class LetterGlyph:
         """
         if not self._lines:
             return LetterGlyph([""] * rows)
-        padded = []
+        padded: list[str] = []
         for r in range(rows):
             if r < len(self._lines):
                 padded.append(self._lines[r].ljust(row_widths[r]))
@@ -121,17 +122,19 @@ def create_inverted_letter(glyph: LetterGlyph) -> list[str]:
     if not glyph:
         return ["X" * FRAMED_COLS] * FRAMED_ROWS
 
-    frame = "X" * FRAMED_COLS
+    frame: TileChar = "X"
+    frame_row: str = frame * FRAMED_COLS
     content_width = FRAMED_COLS - 2  # 1 left + 1 right X
-    content = []
+    content: list[str] = []
     for row in glyph:
-        inverted_row = "".join(inverse(c) for c in row)
+        # row is a string of TileChar
+        inverted_row = "".join(inverse(c) for c in row)  # type: ignore
         inverted_row = inverted_row[:content_width].ljust(content_width, "X")
-        content.append("X" + inverted_row + "X")
+        content.append(frame + inverted_row + frame)
 
     content_height = UNFRAMED_ROWS
     while len(content) < content_height:
-        content.append("X" + "X" * content_width + "X")
+        content.append(frame + ("X" * content_width) + frame)
     content = content[:content_height]
 
-    return [frame] + content + [frame]
+    return [frame_row] + content + [frame_row]

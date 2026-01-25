@@ -6,9 +6,10 @@ import webbrowser
 from pathlib import Path
 
 from letter_glyph import LetterGlyph
+from tiles import Direction, TileChar, available_directions, is_tile_char
 
 
-def draw_cell_contours(ch: str, size: int) -> str:
+def draw_cell_contours(ch: TileChar, size: int) -> str:
     """
     SVG for one cell: full diagonals and half-segments (center to corner).
     Half-segments run from cell center to the appropriate corner.
@@ -39,9 +40,7 @@ def draw_cell_contours(ch: str, size: int) -> str:
             return ""
 
 
-from tiles import available_directions, Direction
-
-def draw_cell_fills(ch: str, cell_size: int, isEven: bool) -> str:
+def draw_cell_fills(ch: TileChar, cell_size: int, isEven: bool) -> str:
     """
     SVG for filled regions in one cell. For now: top and bottom triangles
     (top-left→center→top-right and bottom-left→center→bottom-right).
