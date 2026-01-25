@@ -5,6 +5,7 @@ Takes an input string and outputs a special graphical version of it.
 import argparse
 
 from formatter import process_text, process_text_empty_space
+from svg_render import display_svg, lines_to_svg
 
 
 def main():
@@ -12,6 +13,7 @@ def main():
     parser = argparse.ArgumentParser(description="Render text as Truchet-style graphics.")
     parser.add_argument("--word", "-w", metavar="TEXT", help="Text to render (if omitted, read from stdin)")
     parser.add_argument("--inverted", "-i", action="store_true", help="Use inverted (empty-space) style")
+    parser.add_argument("--svg", "-s", action="store_true", help="Render as SVG and open in browser")
     args = parser.parse_args()
 
     if args.word is not None:
@@ -30,6 +32,11 @@ def main():
         print(output)
     else:
         print("\n" + output + "\n")
+
+    if args.svg and output:
+        lines = output.split("\n")
+        svg = lines_to_svg(lines)
+        display_svg(svg)
 
 
 if __name__ == "__main__":
