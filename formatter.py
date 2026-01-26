@@ -1,22 +1,21 @@
 """
 Text formatter module for rendering text as ASCII art letters.
 """
-from letter_glyph import FRAMED_ROWS, LetterGlyph, UNFRAMED_COLS, create_inverted_letter
+from letter_glyph import UNFRAMED_ROWS, LetterGlyph, UNFRAMED_COLS, create_inverted_letter
 
 
-def combine_letters(letters: list[LetterGlyph], spacing: int = 1, rows: int = 5) -> list[str]:
+def combine_letters(letters: list[LetterGlyph], isInverted: bool) -> list[str]:
     """
-    Combine multiple letter glyphs horizontally.
+    Combine multiple letter glyphs horizontally with shared borders.
     Assumes all glyphs have exactly `rows` lines.
 
     Args:
         letters: List of LetterGlyph instances
-        spacing: Number of spaces between letters
-        rows: Number of rows per letter (default UNFRAMED_ROWS; use FRAMED_ROWS for framed)
-
+        isInverted: Whether the letters are inverted (empty-space style)
     Returns:
         Combined lines
     """
+    rows = UNFRAMED_ROWS
     if not letters:
         return []
 
@@ -28,28 +27,17 @@ def combine_letters(letters: list[LetterGlyph], spacing: int = 1, rows: int = 5)
 
     result = []
     for row in range(rows):
-        line_parts = [p[row] for p in padded_letters]
-        result.append((" " * spacing).join(line_parts))
+        line_parts = []
+        for i, letter in enumerate(padded_letters):
+            # Remove the right border of all but the last letter
+            if i < len(padded_letters) - 1:
+                line_parts.append(letter[row])  # Exclude the last character (right border)
+            else:
+                line_parts.append(letter[row])  # Keep the full row for the last letter
 
-    return result
-
-
-def combine_letters_vertical(letters: list[LetterGlyph]) -> list[str]:
-    """
-    Combine multiple letter glyphs vertically, appending one after the other.
-
-    Args:
-        letters: List of LetterGlyph instances
-
-    Returns:
-        Combined lines with letters stacked vertically
-    """
-    result = []
-    for letter in letters:
-        if letter:
-            result.extend(letter)
-            result.append("")  # Add a newline after each letter
-        # Skip empty letters (spaces)
+        # Join the parts with the specified spacing
+        SPACING_CHARACTER = "X" if isInverted else " "
+        result.append((SPACING_CHARACTER * 1).join(line_parts))
 
     return result
 
@@ -57,7 +45,7 @@ def combine_letters_vertical(letters: list[LetterGlyph]) -> list[str]:
 def process_text_empty_space(input_string: str) -> str:
     """
     Process the input string and return the graphical version with empty space letters.
-    Each letter is shown as blank spaces within a 7×5 frame.
+    Each letter is shown as blank spaces, and the frame is added afterward.
     
     Args:
         input_string: The text to process
@@ -71,21 +59,30 @@ def process_text_empty_space(input_string: str) -> str:
 
     for char in text:
         if char == " ":
-            # Add a space (empty glyph) - full 7×5 X block
-            letters.append(LetterGlyph(create_inverted_letter(LetterGlyph.empty())))
+            # Add a space (empty glyph) without a frame
+            letters.append(LetterGlyph.empty())
         elif char.isalpha():
-            # Load the glyph and convert to empty space version
+            # Load the glyph and convert to an inverted version without a frame
             glyph = LetterGlyph.load(char)
             if glyph:
-                letters.append(LetterGlyph(create_inverted_letter(glyph)))
+                inverted_glyph = create_inverted_letter(glyph)
+                letters.append(LetterGlyph(inverted_glyph))
         # Skip non-alphabetic characters
     
-    # Combine all letters
+    # Combine all letters without a frame
     if not letters:
         return ""
     
-    result_lines = combine_letters(letters, spacing=1, rows=FRAMED_ROWS)
-    return "\n".join(result_lines)
+    combined_lines = combine_letters(letters, isInverted=True)  # Exclude top and bottom frame rows
+
+    # Add the frame around the combined result
+    top_frame = "X" * (len(combined_lines[0]) + 2)
+    framed_result = [top_frame]
+    for line in combined_lines:
+        framed_result.append(f"X{line}X")
+    framed_result.append(top_frame)
+
+    return "\n".join(framed_result)
 
 
 def process_text(input_string: str) -> str:
@@ -114,6 +111,6 @@ def process_text(input_string: str) -> str:
     if not letters:
         return ""
     
-    result_lines = combine_letters(letters, spacing=1)
+    result_lines = combine_letters(letters, isInverted=False)
     return '\n'.join(result_lines)
 

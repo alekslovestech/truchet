@@ -8,9 +8,6 @@ from tiles import inverse, TileChar
 # Unframed: 5 rows, min 3 cols per row
 UNFRAMED_ROWS = 5
 UNFRAMED_COLS = 3
-# Framed (inverted): 7×5 with X frame
-FRAMED_ROWS = 7
-FRAMED_COLS = 5
 
 
 class LetterGlyph:
@@ -113,28 +110,26 @@ class LetterGlyph:
 
 def create_inverted_letter(glyph: LetterGlyph) -> list[str]:
     """
-    Create an inverted (framed) version of a letter glyph using tile inverse.
-    Returns 7×5 (FRAMED_ROWS × FRAMED_COLS): 1 X row top, 5 content, 1 X row bottom.
+    Create an inverted (unframed) version of a letter glyph using tile inverse.
+    Returns 5×3 (UNFRAMED_ROWS × UNFRAMED_COLS): 5 content
     Empty glyph → full X block.
 
     This is framed logic; it returns raw list[str] for the caller to wrap in LetterGlyph if needed.
     """
     if not glyph:
-        return ["X" * FRAMED_COLS] * FRAMED_ROWS
+        return ["X" * UNFRAMED_COLS] * UNFRAMED_ROWS
 
-    frame: TileChar = "X"
-    frame_row: str = frame * FRAMED_COLS
-    content_width = FRAMED_COLS - 2  # 1 left + 1 right X
+    content_width = UNFRAMED_COLS  # 1 left + 1 right X
     content: list[str] = []
     for row in glyph:
         # row is a string of TileChar
         inverted_row = "".join(inverse(c) for c in row)  # type: ignore
         inverted_row = inverted_row[:content_width].ljust(content_width, "X")
-        content.append(frame + inverted_row + frame)
+        content.append(inverted_row)
 
     content_height = UNFRAMED_ROWS
     while len(content) < content_height:
-        content.append(frame + ("X" * content_width) + frame)
+        content.append("X" * content_width)
     content = content[:content_height]
 
-    return [frame_row] + content + [frame_row]
+    return content 
