@@ -4,7 +4,7 @@ Takes an input string and outputs a special graphical version of it.
 """
 import argparse
 
-from formatter import process_text, process_text_empty_space
+from formatter import process_text
 from svg_render import display_svg, lines_to_svg
 
 
@@ -23,8 +23,7 @@ def main():
         print("=" * 30)
         user_input = input("Enter text to render: ")
 
-    process = process_text_empty_space if args.inverted else process_text
-    output = process(user_input)
+    output = process_text(user_input, is_inverted=args.inverted)
 
     if args.word is None:
         print("\nOutput:")

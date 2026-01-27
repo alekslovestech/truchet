@@ -5,10 +5,8 @@ from pathlib import Path
 
 from tiles import inverse, TileChar
 
-# Unframed: 5 rows, min 3 cols per row
+# Unframed: 5 rows
 UNFRAMED_ROWS = 5
-UNFRAMED_COLS = 3
-
 
 class LetterGlyph:
     """
@@ -18,6 +16,7 @@ class LetterGlyph:
 
     def __init__(self, lines: list[str]) -> None:
         self._lines = lines  # type: list[str]  # each string is a row of TileChar chars
+        self.width = max(len(line) for line in lines) if lines else 0  # Calculate the width dynamically
 
     @property
     def lines(self) -> list[str]:
@@ -48,51 +47,35 @@ class LetterGlyph:
         while lines and not lines[-1]:
             lines.pop()
 
-        return cls(lines)
+        # Pad each row to the maximum width of the glyph
+        max_width = max(len(line) for line in lines) if lines else 0
+        padded_lines = [line.ljust(max_width) for line in lines]
+
+        return cls(padded_lines)
 
     @classmethod
     def empty(cls) -> "LetterGlyph":
         """Empty glyph (e.g. for space)."""
         return cls([])
 
-    def row_widths(self, rows: int) -> list[int]:
+    def pad(self, max_widths: list[int], rows: int) -> "LetterGlyph":
         """
-        Width of each row. Present rows use at least UNFRAMED_COLS; missing rows are 0.
+        Pad the glyph to match the maximum widths for each row.
 
         Args:
-            rows: Number of rows to consider
+            max_widths: The maximum width for each row
+            rows: The number of rows in the glyph
 
         Returns:
-            List of length `rows`: for each index, max(UNFRAMED_COLS, len(row)) if exists, else 0
+            A padded list of strings representing the glyph
         """
-        result = []
-        for r in range(rows):
-            if r < len(self._lines):
-                result.append(max(UNFRAMED_COLS, len(self._lines[r])))
+        padded = []
+        for row in range(rows):
+            if row < len(self._lines):
+                line = self._lines[row].ljust(max_widths[row])
             else:
-                result.append(0)
-        return result
-
-    def pad(self, row_widths: list[int], rows: int) -> "LetterGlyph":
-        """
-        Pad this glyph to the given row widths and row count.
-        Each row is left-justified to row_widths[r]; missing rows become spaces.
-
-        Args:
-            row_widths: Target width for each row (length must be >= rows)
-            rows: Number of rows to produce
-
-        Returns:
-            New LetterGlyph with exactly `rows` lines. Empty glyph → [""] * rows.
-        """
-        if not self._lines:
-            return LetterGlyph([""] * rows)
-        padded: list[str] = []
-        for r in range(rows):
-            if r < len(self._lines):
-                padded.append(self._lines[r].ljust(row_widths[r]))
-            else:
-                padded.append(" " * row_widths[r])
+                line = " " * max_widths[row]
+            padded.append(line)
         return LetterGlyph(padded)
 
     def __bool__(self) -> bool:
@@ -107,29 +90,23 @@ class LetterGlyph:
     def __len__(self) -> int:
         return len(self._lines)
 
+    def letter_width(self) -> int:
+        """
+        Calculate the maximum width of the letter glyph.
+
+        Returns:
+            The maximum width of the letter glyph
+        """
+        return max((len(row) for row in self._lines), default=0)
+
 
 def create_inverted_letter(glyph: LetterGlyph) -> list[str]:
     """
-    Create an inverted (unframed) version of a letter glyph using tile inverse.
-    Returns 5×3 (UNFRAMED_ROWS × UNFRAMED_COLS): 5 content
-    Empty glyph → full X block.
-
-    This is framed logic; it returns raw list[str] for the caller to wrap in LetterGlyph if needed.
+    Create an inverted version of a letter glyph using tile inverse.
+    Does NOT handle framing or padding.
     """
     if not glyph:
-        return ["X" * UNFRAMED_COLS] * UNFRAMED_ROWS
+        return []
 
-    content_width = UNFRAMED_COLS  # 1 left + 1 right X
-    content: list[str] = []
-    for row in glyph:
-        # row is a string of TileChar
-        inverted_row = "".join(inverse(c) for c in row)  # type: ignore
-        inverted_row = inverted_row[:content_width].ljust(content_width, "X")
-        content.append(inverted_row)
-
-    content_height = UNFRAMED_ROWS
-    while len(content) < content_height:
-        content.append("X" * content_width)
-    content = content[:content_height]
-
-    return content 
+    # Invert each row of the glyph
+    return ["".join(inverse(c) for c in row) for row in glyph]
