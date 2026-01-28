@@ -21,14 +21,14 @@ def combine_letters(letters: list[LetterGlyph], isInverted: bool) -> list[str]:
 
     # Pad each letter to its own width
     padded_letters = [L.pad([L.letter_width()] * rows, rows) for L in letters]
-
     SPACING_CHARACTER = "X" if isInverted else " "
     result = []
     for row in range(rows):
         line_parts = []
-        for letter in enumerate(padded_letters):
+        for letter in padded_letters:
             line_parts.append(letter[row])
-        result.append((SPACING_CHARACTER).join(line_parts))
+
+        result.append(SPACING_CHARACTER.join(line_parts))
     return result
 
 

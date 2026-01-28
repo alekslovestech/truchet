@@ -6,7 +6,7 @@ import webbrowser
 from pathlib import Path
 
 from letter_glyph import LetterGlyph
-from tiles import Direction, TileChar, available_directions, is_tile_char
+from tiles import Direction, TileChar, available_directions
 
 # Fill and stroke colors for SVG elements
 FILL_TRIANGLE = "#444"
@@ -14,12 +14,12 @@ STROKE_CONTOUR = "#111"
 STROKE_GRID = "#ccc"
 
 
-def make_line(x1: float, y1: float, x2: float, y2: float) -> str:
+def _make_svg_line(x1: float, y1: float, x2: float, y2: float) -> str:
     """Return an SVG line element from (x1,y1) to (x2,y2)."""
     return f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}"/>'
 
 
-def make_triangle_points(
+def _make_svg_triangle(
     x1: float, y1: float, x2: float, y2: float, x3: float, y3: float
 ) -> str:
     """Return an SVG polygon element for a triangle with the three given vertices."""
@@ -38,10 +38,10 @@ def draw_cell_contours(ch: TileChar, size: int) -> str:
     c = size / 2
 
     def half(x: float, y: float) -> str:
-        return make_line(c, c, x, y)
+        return _make_svg_line(c, c, x, y)
 
-    diag_back = make_line(0, 0, size, size)
-    diag_fwd = make_line(size, 0, 0, size)
+    diag_back = _make_svg_line(0, 0, size, size)
+    diag_fwd = _make_svg_line(size, 0, 0, size)
 
     match ch:
         case "X":
@@ -70,15 +70,15 @@ def draw_cell_fills(ch: TileChar, cell_size: int, isEven: bool) -> str:
     if isEven:
         if Direction.LEFT in directions:
             # Left triangle: left edge to center to bottom edge
-            output += make_triangle_points(0, 0, mid, mid, 0, cell_size)
+            output += _make_svg_triangle(0, 0, mid, mid, 0, cell_size)
         if Direction.RIGHT in directions:
             # Right triangle: right edge to center to top edge
-            output += make_triangle_points(cell_size, 0, mid, mid, cell_size, cell_size)
+            output += _make_svg_triangle(cell_size, 0, mid, mid, cell_size, cell_size)
     else:
         if Direction.TOP in directions:
-            output += make_triangle_points(0, 0, mid, mid, cell_size, 0)
+            output += _make_svg_triangle(0, 0, mid, mid, cell_size, 0)
         if Direction.BOTTOM in directions:
-            output += make_triangle_points(0, cell_size, mid, mid, cell_size, cell_size)
+            output += _make_svg_triangle(0, cell_size, mid, mid, cell_size, cell_size)
     return output
 
 
@@ -99,10 +99,10 @@ def lines_to_svg(lines: list[str], cell_size: int = 20) -> str:
     grid_lines = []
     for i in range(cols + 1):
         x = i * cell_size
-        grid_lines.append(make_line(x, 0, x, height))
+        grid_lines.append(_make_svg_line(x, 0, x, height))
     for j in range(rows + 1):
         y = j * cell_size
-        grid_lines.append(make_line(0, y, width, y))
+        grid_lines.append(_make_svg_line(0, y, width, y))
     grid = (
         f'<g stroke="{STROKE_GRID}" stroke-width="0.5" fill="none">'
         + "".join(grid_lines)
