@@ -6,12 +6,6 @@ from typing import Literal, TypeGuard
 
 TileChar = Literal[" ", "X", "λ", "ɣ", "y", "ʎ"]
 
-
-def is_tile_char(s: str) -> TypeGuard[TileChar]:
-    """Return True if s is one of the tile characters."""
-    return s in (" ", "X", "λ", "ɣ", "y", "ʎ")
-
-
 class Direction(Enum):
     LEFT = "LEFT"
     RIGHT = "RIGHT"
