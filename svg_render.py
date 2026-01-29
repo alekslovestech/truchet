@@ -12,6 +12,7 @@ from tiles import Direction, TileChar, available_directions
 FILL_TRIANGLE = "#444"
 STROKE_CONTOUR = "#111"
 STROKE_GRID = "#ccc"
+CELL_SIZE = 20
 
 
 def _make_svg_line(x1: float, y1: float, x2: float, y2: float) -> str:
@@ -57,17 +58,18 @@ def draw_cell_contours(ch: TileChar, size: int) -> str:
         case _:
             return ""
 
-
-def draw_cell_fills(ch: TileChar, cell_size: int, isEven: bool) -> str:
+# tiles can be filled either as an hourglass (⧗) or a bowtie (⧓). They alternate, but the initial tile determines the rest
+def draw_cell_fills(ch: TileChar, isEven: bool, init_tile_bowtie: bool) -> str:
     """
     SVG for filled regions in one cell. 
     """
-    if ch == " " or cell_size <= 0:
+    if ch == " ":
         return ""
+    cell_size = CELL_SIZE
     mid = cell_size / 2
     output = ""
     directions = available_directions(ch)
-    if isEven:
+    if isEven == init_tile_bowtie:
         if Direction.LEFT in directions:
             # Left triangle: left edge to center to bottom edge
             output += _make_svg_triangle(0, 0, mid, mid, 0, cell_size)
@@ -82,7 +84,7 @@ def draw_cell_fills(ch: TileChar, cell_size: int, isEven: bool) -> str:
     return output
 
 
-def lines_to_svg(lines: list[str], cell_size: int = 20) -> str:
+def lines_to_svg(lines: list[str], init_tile_bowtie: bool) -> str:
     """
     Convert a 2D grid of characters (list of rows) to an SVG string.
     Each character uses draw_cell_fills (top/bottom triangles) and draw_cell_contours (lines and half-segments).
@@ -90,6 +92,7 @@ def lines_to_svg(lines: list[str], cell_size: int = 20) -> str:
     if not lines:
         return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0"></svg>'
 
+    cell_size = CELL_SIZE
     cols = max(len(row) for row in lines)
     rows = len(lines)
     width = cols * cell_size
@@ -116,7 +119,7 @@ def lines_to_svg(lines: list[str], cell_size: int = 20) -> str:
             y = r * cell_size
             isEven = (r + c) % 2 == 0
             tileChar: TileChar = ch  # type: ignore
-            inner = draw_cell_fills(tileChar, cell_size, isEven) + draw_cell_contours(tileChar, cell_size)
+            inner = draw_cell_fills(tileChar, isEven, init_tile_bowtie) + draw_cell_contours(tileChar, cell_size)
             if inner:
                 cells.append(
                     f'<g transform="translate({x},{y})" stroke="{STROKE_CONTOUR}" fill="none" stroke-width="1">'
