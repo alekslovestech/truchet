@@ -45,18 +45,21 @@ def draw_cell_contours(ch: TileChar) -> str:
 
     diag_back = _make_svg_line(0, 0, cell_size, cell_size)
     diag_fwd = _make_svg_line(cell_size, 0, 0, cell_size)
-
+    lower_left = half(0, cell_size)
+    top_right = half(cell_size, 0)
+    top_left = half(0, 0)
+    bottom_right = half(cell_size, cell_size)
     match ch:
         case "X":
             return diag_back + diag_fwd
         case "λ":
-            return diag_back + half(0, cell_size)  # \ + lower-left
+            return diag_back + lower_left  
         case "ɣ":
-            return diag_back + half(cell_size, 0)  # / + top-right
+            return diag_back + top_right  
         case "y":
-            return diag_fwd + half(0, 0)  # \ + top-left
+            return diag_fwd + top_left
         case "ʎ":
-            return diag_fwd + half(cell_size, cell_size)  # / + bottom-right
+            return diag_fwd + bottom_right 
         case _:
             return ""
 
