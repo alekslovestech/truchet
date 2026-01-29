@@ -28,33 +28,35 @@ def _make_svg_triangle(
     return f'<polygon points="{pts}" fill="{FILL_TRIANGLE}" stroke="none"/>'
 
 
-def draw_cell_contours(ch: TileChar, size: int) -> str:
+def draw_cell_contours(ch: TileChar) -> str:
     """
     SVG for one cell: full diagonals and half-segments (center to corner).
     Half-segments run from cell center to the appropriate corner.
     Returns line elements only; stroke/fill are set by the caller.
     """
-    if ch == " " or size <= 0:
+
+    cell_size = CELL_SIZE
+    if ch == " ":
         return ""
-    c = size / 2
+    c = cell_size / 2
 
     def half(x: float, y: float) -> str:
         return _make_svg_line(c, c, x, y)
 
-    diag_back = _make_svg_line(0, 0, size, size)
-    diag_fwd = _make_svg_line(size, 0, 0, size)
+    diag_back = _make_svg_line(0, 0, cell_size, cell_size)
+    diag_fwd = _make_svg_line(cell_size, 0, 0, cell_size)
 
     match ch:
         case "X":
             return diag_back + diag_fwd
         case "λ":
-            return diag_back + half(0, size)  # \ + lower-left
+            return diag_back + half(0, cell_size)  # \ + lower-left
         case "ɣ":
-            return diag_back + half(size, 0)  # / + top-right
+            return diag_back + half(cell_size, 0)  # / + top-right
         case "y":
             return diag_fwd + half(0, 0)  # \ + top-left
         case "ʎ":
-            return diag_fwd + half(size, size)  # / + bottom-right
+            return diag_fwd + half(cell_size, cell_size)  # / + bottom-right
         case _:
             return ""
 
@@ -119,13 +121,13 @@ def lines_to_svg(lines: list[str], init_tile_bowtie: bool) -> str:
             y = r * cell_size
             isEven = (r + c) % 2 == 0
             tileChar: TileChar = ch  # type: ignore
-            inner = draw_cell_fills(tileChar, isEven, init_tile_bowtie) + draw_cell_contours(tileChar, cell_size)
-            if inner:
-                cells.append(
-                    f'<g transform="translate({x},{y})" stroke="{STROKE_CONTOUR}" fill="none" stroke-width="1">'
-                    + inner
-                    + "</g>"
-                )
+            contour = draw_cell_contours(tileChar)
+            fills = draw_cell_fills(tileChar, isEven, init_tile_bowtie)
+            cells.append(
+                f'<g transform="translate({x},{y})" stroke="{STROKE_CONTOUR}" fill="none" stroke-width="1">'
+                + fills + contour
+                + "</g>"
+            )
 
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}">'
