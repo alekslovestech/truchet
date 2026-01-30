@@ -6,11 +6,12 @@ import webbrowser
 from pathlib import Path
 
 from letter_glyph import LetterGlyph
-from .svg_render_cell import CELL_SIZE, STROKE_CONTOUR, STROKE_GRID, TileChar, draw_cell_contours, draw_cell_fills
+from tilestyle import TileStyle
+from .svg_render_cell import CELL_SIZE, STROKE_CONTOUR, STROKE_GRID, TileChar, draw_cell_contours, draw_cell_fills, draw_circular_fills
 from .svg_utils import make_svg_line_points
 
 
-def lines_to_svg(lines: list[str], init_tile_bowtie: bool) -> str:
+def lines_to_svg(lines: list[str], init_tile_bowtie: bool, style: TileStyle = TileStyle.BOWTIE) -> str:
     """
     Convert a 2D grid of characters (list of rows) to an SVG string.
     Each character uses draw_cell_fills (top/bottom triangles) and draw_cell_contours (lines and half-segments).
@@ -39,19 +40,32 @@ def lines_to_svg(lines: list[str], init_tile_bowtie: bool) -> str:
     )
 
     cells = []
+    print(f"Debug: style={style}, init_tile_bowtie={init_tile_bowtie}")
     for r, row in enumerate(lines):
         for c, ch in enumerate(row):
             x = c * cell_size
             y = r * cell_size
             isEven = (r + c) % 2 == 0
             tileChar: TileChar = ch  # type: ignore
-            contour = draw_cell_contours(tileChar)
-            fills = draw_cell_fills(tileChar, isEven, init_tile_bowtie)
-            cells.append(
-                f'<g transform="translate({x},{y})" stroke="{STROKE_CONTOUR}" fill="none" stroke-width="1">'
-                + fills + contour
-                + "</g>"
-            )
+            if (style == TileStyle.BOWTIE):
+                print("Debug: Drawing bowtie cell")
+                contour = draw_cell_contours(tileChar, style)
+                fills = draw_cell_fills(tileChar, isEven, init_tile_bowtie, style)
+                cells.append(
+                    f'<g transform="translate({x},{y})" stroke="{STROKE_CONTOUR}" fill="none" stroke-width="1">'
+                    + fills + contour
+                    + "</g>"            
+                )
+            elif (style == TileStyle.CIRCLE):
+                print("Debug: Drawing circle cell")
+                fills = draw_circular_fills(tileChar, isEven, init_tile_bowtie, style)
+                cells.append(
+                    f'<g transform="translate({x},{y})" stroke="{STROKE_CONTOUR}" fill="none" stroke-width="1">'
+                    + fills
+                    + "</g>"            
+                )
+            else: 
+                print("Debug: other")
 
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}">'

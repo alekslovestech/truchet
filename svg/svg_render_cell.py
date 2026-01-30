@@ -61,14 +61,12 @@ def draw_cell_fills(ch: TileChar, isEven: bool, init_tile_bowtie: bool) -> str:
     cell=cell_pts()
     if isEven == init_tile_bowtie:
         if Direction.LEFT in directions:
-            # Left triangle: left edge to center to bottom edge
             output += make_svg_triangle_points(
                 cell.top_left,
                 cell.center,
                 cell.bottom_left
             )            
         if Direction.RIGHT in directions:
-            # Right triangle: right edge to center to top edge
             output += make_svg_triangle_points(
                 cell.top_right,
                 cell.center,
@@ -87,4 +85,27 @@ def draw_cell_fills(ch: TileChar, isEven: bool, init_tile_bowtie: bool) -> str:
                 cell.center,
                 cell.bottom_right
             )
+    return output
+
+def draw_circular_fills(ch: TileChar, isEven: bool, init_tile_bowtie: bool) -> str:
+    """
+    SVG for filled circular arcs in one cell. 
+    """
+    if ch == " ":
+        return ""
+    output = ""
+    directions = available_directions(ch)
+
+    cell=cell_pts()
+    radius = CELL_SIZE / 2
+    if isEven == init_tile_bowtie:
+        if Direction.LEFT in directions:
+            output += f'<path d="M {cell.center[0]} {cell.center[1]} A {radius} {radius} 0 0 1 {cell.top_left[0]} {cell.top_left[1]} A {radius} {radius} 0 0 1 {cell.bottom_left[0]} {cell.bottom_left[1]} Z" />'
+        if Direction.RIGHT in directions:
+            output += f'<path d="M {cell.center[0]} {cell.center[1]} A {radius} {radius} 0 0 1 {cell.top_right[0]} {cell.top_right[1]} A {radius} {radius} 0 0 1 {cell.bottom_right[0]} {cell.bottom_right[1]} Z" />'
+    else:
+        if Direction.TOP in directions:
+            output += f'<path d="M {cell.center[0]} {cell.center[1]} A {radius} {radius} 0 0 1 {cell.top_left[0]} {cell.top_left[1]} A {radius} {radius} 0 0 1 {cell.top_right[0]} {cell.top_right[1]} Z" />'
+        if Direction.BOTTOM in directions:
+            output += f'<path d="M {cell.center[0]} {cell.center[1]} A {radius} {radius} 0 0 1 {cell.bottom_left[0]} {cell.bottom_left[1]} A {radius} {radius} 0 0 1 {cell.bottom_right[0]} {cell.bottom_right[1]} Z" />'
     return output
