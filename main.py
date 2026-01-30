@@ -5,7 +5,7 @@ Takes an input string and outputs a special graphical version of it.
 import argparse
 
 from formatter import process_text
-from svg_render import display_svg, lines_to_svg
+from svg.svg_render import display_svg, lines_to_svg
 
 
 def main():

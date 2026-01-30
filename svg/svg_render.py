@@ -6,8 +6,8 @@ import webbrowser
 from pathlib import Path
 
 from letter_glyph import LetterGlyph
-from svg_render_cell import CELL_SIZE, STROKE_CONTOUR, STROKE_GRID, TileChar, draw_cell_contours, draw_cell_fills
-from svg_utils import make_svg_line_points
+from .svg_render_cell import CELL_SIZE, STROKE_CONTOUR, STROKE_GRID, TileChar, draw_cell_contours, draw_cell_fills
+from .svg_utils import make_svg_line_points
 
 
 def lines_to_svg(lines: list[str], init_tile_bowtie: bool) -> str:

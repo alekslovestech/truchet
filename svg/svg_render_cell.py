@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 from tiles import Direction, TileChar, available_directions
-from svg_utils import make_svg_line_points, make_svg_triangle_points
+from .svg_utils import make_svg_line_points, make_svg_triangle_points
 
 # Fill and stroke colors for SVG elements
 
