@@ -6,6 +6,7 @@ import argparse
 
 from formatter import process_text
 from svg.svg_render import display_svg, lines_to_svg
+from tilestyle import TileStyle
 
 
 def main():
@@ -34,12 +35,12 @@ def main():
     else:
         print("\n" + output + "\n")
 
+    style = TileStyle(args.style)
     if args.svg and output:
         lines = output.split("\n")
         init_tile_bowtie = not args.init_tile_hourglass
-        svg = lines_to_svg(lines, init_tile_bowtie, style=args.style)
+        svg = lines_to_svg(lines, init_tile_bowtie, style=style)
         display_svg(svg)
-
 
 if __name__ == "__main__":
     main()

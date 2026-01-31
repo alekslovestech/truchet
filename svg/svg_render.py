@@ -39,8 +39,7 @@ def lines_to_svg(lines: list[str], init_tile_bowtie: bool, style: TileStyle = Ti
         + "</g>"
     )
 
-    cells = []
-    print(f"Debug: style={style}, init_tile_bowtie={init_tile_bowtie}")
+    cells = []    
     for r, row in enumerate(lines):
         for c, ch in enumerate(row):
             x = c * cell_size
@@ -48,24 +47,20 @@ def lines_to_svg(lines: list[str], init_tile_bowtie: bool, style: TileStyle = Ti
             isEven = (r + c) % 2 == 0
             tileChar: TileChar = ch  # type: ignore
             if (style == TileStyle.BOWTIE):
-                print("Debug: Drawing bowtie cell")
-                contour = draw_cell_contours(tileChar, style)
-                fills = draw_cell_fills(tileChar, isEven, init_tile_bowtie, style)
+                contour = draw_cell_contours(tileChar)
+                fills = draw_cell_fills(tileChar, isEven, init_tile_bowtie)
                 cells.append(
                     f'<g transform="translate({x},{y})" stroke="{STROKE_CONTOUR}" fill="none" stroke-width="1">'
                     + fills + contour
                     + "</g>"            
                 )
             elif (style == TileStyle.CIRCLE):
-                print("Debug: Drawing circle cell")
-                fills = draw_circular_fills(tileChar, isEven, init_tile_bowtie, style)
+                fills = draw_circular_fills(tileChar, isEven, init_tile_bowtie)
                 cells.append(
                     f'<g transform="translate({x},{y})" stroke="{STROKE_CONTOUR}" fill="none" stroke-width="1">'
                     + fills
                     + "</g>"            
                 )
-            else: 
-                print("Debug: other")
 
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}">'
@@ -74,10 +69,6 @@ def lines_to_svg(lines: list[str], init_tile_bowtie: bool, style: TileStyle = Ti
         + "</svg>"
     )
 
-
-def letter_glyph_to_svg(glyph: LetterGlyph, cell_size: int = 20) -> str:
-    """Convert a single LetterGlyph to SVG."""
-    return lines_to_svg(glyph.lines, cell_size)
 
 
 def display_svg(svg: str) -> None:

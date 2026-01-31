@@ -14,7 +14,11 @@ def cell_pts():
         top_right=(CELL_SIZE, 0),
         bottom_left=(0, CELL_SIZE),
         bottom_right=(CELL_SIZE, CELL_SIZE),
-        center=(CELL_SIZE / 2, CELL_SIZE / 2)
+        center=(CELL_SIZE / 2, CELL_SIZE / 2),
+        top_mid=(CELL_SIZE / 2, 0),
+        bottom_mid=(CELL_SIZE / 2, CELL_SIZE),
+        left_mid=(0, CELL_SIZE / 2),
+        right_mid=(CELL_SIZE, CELL_SIZE / 2),
     )
 
 def draw_cell_contours(ch: TileChar) -> str:
@@ -87,6 +91,23 @@ def draw_cell_fills(ch: TileChar, isEven: bool, init_tile_bowtie: bool) -> str:
             )
     return output
 
+
+def _make_svg_arc_fill(
+    pt1: tuple[float, float],
+    pt2: tuple[float, float],
+    sweep: int = 1,
+) -> str:
+    """
+    SVG path for a circular quadrant: arc from pt1 to pt2.
+    sweep: 1 = clockwise, 0 = counter-clockwise
+    """
+    radius = CELL_SIZE / 2
+    return (
+        f'<path d="M {pt1[0]} {pt1[1]} '
+        f'A {radius} {radius} 0 0 {sweep} {pt2[0]} {pt2[1]}" />'
+    )
+
+
 def draw_circular_fills(ch: TileChar, isEven: bool, init_tile_bowtie: bool) -> str:
     """
     SVG for filled circular arcs in one cell. 
@@ -96,16 +117,12 @@ def draw_circular_fills(ch: TileChar, isEven: bool, init_tile_bowtie: bool) -> s
     output = ""
     directions = available_directions(ch)
 
-    cell=cell_pts()
+    cell = cell_pts()
     radius = CELL_SIZE / 2
     if isEven == init_tile_bowtie:
-        if Direction.LEFT in directions:
-            output += f'<path d="M {cell.center[0]} {cell.center[1]} A {radius} {radius} 0 0 1 {cell.top_left[0]} {cell.top_left[1]} A {radius} {radius} 0 0 1 {cell.bottom_left[0]} {cell.bottom_left[1]} Z" />'
-        if Direction.RIGHT in directions:
-            output += f'<path d="M {cell.center[0]} {cell.center[1]} A {radius} {radius} 0 0 1 {cell.top_right[0]} {cell.top_right[1]} A {radius} {radius} 0 0 1 {cell.bottom_right[0]} {cell.bottom_right[1]} Z" />'
+        output += _make_svg_arc_fill(cell.top_mid, cell.left_mid, sweep=1)
+        output += _make_svg_arc_fill(cell.bottom_mid, cell.right_mid, sweep=1)
     else:
-        if Direction.TOP in directions:
-            output += f'<path d="M {cell.center[0]} {cell.center[1]} A {radius} {radius} 0 0 1 {cell.top_left[0]} {cell.top_left[1]} A {radius} {radius} 0 0 1 {cell.top_right[0]} {cell.top_right[1]} Z" />'
-        if Direction.BOTTOM in directions:
-            output += f'<path d="M {cell.center[0]} {cell.center[1]} A {radius} {radius} 0 0 1 {cell.bottom_left[0]} {cell.bottom_left[1]} A {radius} {radius} 0 0 1 {cell.bottom_right[0]} {cell.bottom_right[1]} Z" />'
+        output += _make_svg_arc_fill(cell.top_mid, cell.right_mid, sweep=0)
+        output += _make_svg_arc_fill(cell.bottom_mid, cell.left_mid, sweep=0)
     return output
