@@ -1,26 +1,11 @@
-from types import SimpleNamespace
 from tiles import Direction, TileChar, Corners, available_directions, available_corners
 from .svg_utils import make_svg_line_points, make_svg_triangle_points, FILL_TRIANGLE
+from .cell_constants import CELL_SIZE, CELL_FRACTION, cell_pts
 
 # Fill and stroke colors for SVG elements
 
 STROKE_CONTOUR = "#111"
 STROKE_GRID = "#ccc"
-CELL_SIZE = 20
-
-def cell_pts():
-    return SimpleNamespace(
-        top_left=(0, 0),
-        top_right=(CELL_SIZE, 0),
-        bottom_left=(0, CELL_SIZE),
-        bottom_right=(CELL_SIZE, CELL_SIZE),
-        center=(CELL_SIZE / 2, CELL_SIZE / 2),
-        top_mid=(CELL_SIZE / 2, 0),
-        bottom_mid=(CELL_SIZE / 2, CELL_SIZE),
-        left_mid=(0, CELL_SIZE / 2),
-        right_mid=(CELL_SIZE, CELL_SIZE / 2),
-    )
-
 
 def make_svg_arc_fill(
     corner: tuple[float, float],
@@ -31,7 +16,7 @@ def make_svg_arc_fill(
     SVG path for a circular quadrant: arc from pt1 to pt2.
     Sweep direction is derived from corner (main diagonal = clockwise).
     """
-    radius = CELL_SIZE / 2
+    radius = CELL_FRACTION
     sweep = 1 if corner[0] == corner[1] else 0
     return (
         f'<path d="M {corner[0]} {corner[1]} '
@@ -125,12 +110,12 @@ def draw_circular_fills(ch: TileChar, isEven: bool, init_tile_bowtie: bool) -> s
     radius = CELL_SIZE / 2
     if isEven == init_tile_bowtie:
         if Corners.TOP_LEFT in corners:
-            output += make_svg_arc_fill(cell.top_left, cell.top_mid, cell.left_mid)
+            output += make_svg_arc_fill(cell.top_left, cell.top_mid_left, cell.left_mid_top)
         if Corners.BOTTOM_RIGHT in corners:
-            output += make_svg_arc_fill(cell.bottom_right, cell.bottom_mid, cell.right_mid)
+            output += make_svg_arc_fill(cell.bottom_right, cell.bottom_mid_right, cell.right_mid_bottom)
     else:
         if Corners.TOP_RIGHT in corners:
-            output += make_svg_arc_fill(cell.top_right, cell.top_mid, cell.right_mid)
+            output += make_svg_arc_fill(cell.top_right, cell.top_mid_right, cell.right_mid_top)
         if Corners.BOTTOM_LEFT in corners:
-            output += make_svg_arc_fill(cell.bottom_left, cell.bottom_mid, cell.left_mid)
+            output += make_svg_arc_fill(cell.bottom_left, cell.bottom_mid_left, cell.left_mid_bottom)
     return output
