@@ -5,14 +5,17 @@ Takes an input string and outputs a special graphical version of it.
 import argparse
 
 from formatter import process_text
-from svg_render import display_svg, lines_to_svg
+from svg.svg_render import display_svg, lines_to_svg
+from tilestyle import TileStyle
 
 
 def main():
     """Main entry point for the application."""
     parser = argparse.ArgumentParser(description="Render text as Truchet-style graphics.")
     parser.add_argument("--word", "-w", metavar="TEXT", help="Text to render (if omitted, read from stdin)")
+    parser.add_argument("--style", "-t", choices=["bowtie", "circle"], default="bowtie", help="Rendering style (default: bowtie)")
     parser.add_argument("--inverted", "-i", action="store_true", help="Use inverted (empty-space) style")
+    parser.add_argument("--init_tile_hourglass", "-H", action="store_true", help="First tile is hourglass (⧗), as opposed to the bowtie (⧓, default)")
     parser.add_argument("--svg", "-s", action="store_true", help="Render as SVG and open in browser")
     args = parser.parse_args()
 
@@ -32,11 +35,12 @@ def main():
     else:
         print("\n" + output + "\n")
 
+    style = TileStyle(args.style)
     if args.svg and output:
         lines = output.split("\n")
-        svg = lines_to_svg(lines)
+        init_tile_bowtie = not args.init_tile_hourglass
+        svg = lines_to_svg(lines, init_tile_bowtie, style=style)
         display_svg(svg)
-
 
 if __name__ == "__main__":
     main()
