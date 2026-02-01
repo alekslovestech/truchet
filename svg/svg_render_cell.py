@@ -1,6 +1,6 @@
 from types import SimpleNamespace
-from tiles import Direction, TileChar, available_directions
-from .svg_utils import make_svg_line_points, make_svg_triangle_points
+from tiles import Direction, TileChar, Corners, available_directions, available_corners
+from .svg_utils import make_svg_line_points, make_svg_triangle_points, FILL_TRIANGLE
 
 # Fill and stroke colors for SVG elements
 
@@ -19,6 +19,25 @@ def cell_pts():
         bottom_mid=(CELL_SIZE / 2, CELL_SIZE),
         left_mid=(0, CELL_SIZE / 2),
         right_mid=(CELL_SIZE, CELL_SIZE / 2),
+    )
+
+
+def make_svg_arc_fill(
+    corner: tuple[float, float],
+    pt1: tuple[float, float],
+    pt2: tuple[float, float],
+) -> str:
+    """
+    SVG path for a circular quadrant: arc from pt1 to pt2.
+    Sweep direction is derived from corner (main diagonal = clockwise).
+    """
+    radius = CELL_SIZE / 2
+    sweep = 1 if corner[0] == corner[1] else 0
+    return (
+        f'<path d="M {corner[0]} {corner[1]} '
+        f'L {pt1[0]} {pt1[1]} '
+        f'A {radius} {radius} 0 0 {sweep} {pt2[0]} {pt2[1]} Z" '
+        f'fill="{FILL_TRIANGLE}" stroke="none"/>'
     )
 
 def draw_cell_contours(ch: TileChar) -> str:
@@ -92,21 +111,6 @@ def draw_cell_fills(ch: TileChar, isEven: bool, init_tile_bowtie: bool) -> str:
     return output
 
 
-def _make_svg_arc_fill(
-    pt1: tuple[float, float],
-    pt2: tuple[float, float],
-    sweep: int = 1,
-) -> str:
-    """
-    SVG path for a circular quadrant: arc from pt1 to pt2.
-    sweep: 1 = clockwise, 0 = counter-clockwise
-    """
-    radius = CELL_SIZE / 2
-    return (
-        f'<path d="M {pt1[0]} {pt1[1]} '
-        f'A {radius} {radius} 0 0 {sweep} {pt2[0]} {pt2[1]}" />'
-    )
-
 
 def draw_circular_fills(ch: TileChar, isEven: bool, init_tile_bowtie: bool) -> str:
     """
@@ -115,14 +119,18 @@ def draw_circular_fills(ch: TileChar, isEven: bool, init_tile_bowtie: bool) -> s
     if ch == " ":
         return ""
     output = ""
-    directions = available_directions(ch)
+    corners = available_corners(ch)
 
     cell = cell_pts()
     radius = CELL_SIZE / 2
     if isEven == init_tile_bowtie:
-        output += _make_svg_arc_fill(cell.top_mid, cell.left_mid, sweep=1)
-        output += _make_svg_arc_fill(cell.bottom_mid, cell.right_mid, sweep=1)
+        if Corners.TOP_LEFT in corners:
+            output += make_svg_arc_fill(cell.top_left, cell.top_mid, cell.left_mid)
+        if Corners.BOTTOM_RIGHT in corners:
+            output += make_svg_arc_fill(cell.bottom_right, cell.bottom_mid, cell.right_mid)
     else:
-        output += _make_svg_arc_fill(cell.top_mid, cell.right_mid, sweep=0)
-        output += _make_svg_arc_fill(cell.bottom_mid, cell.left_mid, sweep=0)
+        if Corners.TOP_RIGHT in corners:
+            output += make_svg_arc_fill(cell.top_right, cell.top_mid, cell.right_mid)
+        if Corners.BOTTOM_LEFT in corners:
+            output += make_svg_arc_fill(cell.bottom_left, cell.bottom_mid, cell.left_mid)
     return output

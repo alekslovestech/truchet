@@ -12,6 +12,12 @@ class Direction(Enum):
     TOP = "TOP"
     BOTTOM = "BOTTOM"
 
+class Corners(Enum):
+    TOP_LEFT = "TOP_LEFT"
+    TOP_RIGHT = "TOP_RIGHT"
+    BOTTOM_LEFT = "BOTTOM_LEFT"
+    BOTTOM_RIGHT = "BOTTOM_RIGHT"
+
 
 def available_directions(ch: TileChar) -> list[Direction]:
     """
@@ -30,6 +36,26 @@ def available_directions(ch: TileChar) -> list[Direction]:
             return [Direction.TOP, Direction.LEFT]
         case "ʎ":
             return [Direction.BOTTOM, Direction.RIGHT]
+        case _:
+            return []
+
+def available_corners(ch: TileChar) -> list[Corners]:
+    """
+    Return the corners that are available for this tile character.
+    """
+    match ch:
+        case " ":
+            return []
+        case "X":
+            return [Corners.TOP_LEFT, Corners.TOP_RIGHT, Corners.BOTTOM_LEFT, Corners.BOTTOM_RIGHT]
+        case "λ":
+            return [Corners.BOTTOM_LEFT, Corners.BOTTOM_RIGHT, Corners.TOP_LEFT]
+        case "ɣ":
+            return [Corners.TOP_RIGHT, Corners.BOTTOM_RIGHT, Corners.TOP_LEFT]
+        case "y":
+            return [Corners.TOP_LEFT, Corners.BOTTOM_LEFT, Corners.TOP_RIGHT]
+        case "ʎ":
+            return [Corners.BOTTOM_RIGHT, Corners.BOTTOM_LEFT, Corners.TOP_RIGHT]
         case _:
             return []
 

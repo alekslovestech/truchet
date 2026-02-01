@@ -10,5 +10,3 @@ def make_svg_triangle_points(
     """Return an SVG polygon element for a triangle with the three given vertices."""
     pts = f"{pt1[0]},{pt1[1]} {pt2[0]},{pt2[1]} {pt3[0]},{pt3[1]}"
     return f'<polygon points="{pts}" fill="{FILL_TRIANGLE}" stroke="none"/>'
-
-
