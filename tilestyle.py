@@ -6,4 +6,4 @@ from enum import Enum
 class TileStyle(Enum):
     BOWTIE = "bowtie"
     CIRCLE = "circle"
-    
+    TRIANGLE = "triangle"

@@ -7,8 +7,29 @@ from pathlib import Path
 
 from letter_glyph import LetterGlyph
 from tilestyle import TileStyle
-from .svg_render_cell import CELL_SIZE, STROKE_CONTOUR, STROKE_GRID, TileChar, draw_cell_contours, draw_cell_fills, draw_circular_fills
+from .svg_render_cell import CELL_SIZE, STROKE_CONTOUR, STROKE_GRID, TileChar, draw_cell
 from .svg_utils import make_svg_line_points
+
+
+def _make_svg_grid_lines(cols: int, rows: int, cell_size: int) -> str:
+    """
+    Generate SVG for grid lines given number of columns, rows, and cell size.
+    """
+    width = cols * cell_size
+    height = rows * cell_size
+    grid_lines = []
+    for i in range(cols + 1):
+        x = i * cell_size
+        grid_lines.append(make_svg_line_points((x, 0), (x, height)))
+    for j in range(rows + 1):
+        y = j * cell_size
+        grid_lines.append(make_svg_line_points((0, y), (width, y)))
+    grid = (
+        f'<g stroke="{STROKE_GRID}" stroke-width="0.5" fill="none">'
+        + "".join(grid_lines)
+        + "</g>"
+    )
+    return grid
 
 
 def lines_to_svg(lines: list[str], init_tile_bowtie: bool, style: TileStyle = TileStyle.BOWTIE) -> str:
@@ -25,19 +46,7 @@ def lines_to_svg(lines: list[str], init_tile_bowtie: bool, style: TileStyle = Ti
     width = cols * cell_size
     height = rows * cell_size
 
-    # Grid: vertical and horizontal lines (fainter than draw_cell strokes)
-    grid_lines = []
-    for i in range(cols + 1):
-        x = i * cell_size
-        grid_lines.append(make_svg_line_points((x, 0), (x, height)))
-    for j in range(rows + 1):
-        y = j * cell_size
-        grid_lines.append(make_svg_line_points((0, y), (width, y)))
-    grid = (
-        f'<g stroke="{STROKE_GRID}" stroke-width="0.5" fill="none">'
-        + "".join(grid_lines)
-        + "</g>"
-    )
+    grid = _make_svg_grid_lines(cols, rows, cell_size)
 
     cells = []    
     for r, row in enumerate(lines):
@@ -46,21 +55,13 @@ def lines_to_svg(lines: list[str], init_tile_bowtie: bool, style: TileStyle = Ti
             y = r * cell_size
             isEven = (r + c) % 2 == 0
             tileChar: TileChar = ch  # type: ignore
-            if (style == TileStyle.BOWTIE):
-                contour = draw_cell_contours(tileChar)
-                fills = draw_cell_fills(tileChar, isEven, init_tile_bowtie)
-                cells.append(
-                    f'<g transform="translate({x},{y})" stroke="{STROKE_CONTOUR}" fill="none" stroke-width="1">'
-                    + fills + contour
-                    + "</g>"            
-                )
-            elif (style == TileStyle.CIRCLE):
-                fills = draw_circular_fills(tileChar, isEven, init_tile_bowtie)
-                cells.append(
-                    f'<g transform="translate({x},{y})" stroke="{STROKE_CONTOUR}" fill="none" stroke-width="1">'
-                    + fills
-                    + "</g>"            
-                )
+            cell = draw_cell(tileChar, isEven, init_tile_bowtie, style)
+            output = (
+                f'<g transform="translate({x},{y})" stroke="{STROKE_CONTOUR}" fill="none" stroke-width="1">'
+                + cell
+                + "</g>"
+            )
+            cells.append(output)
 
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}">'
