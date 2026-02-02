@@ -1,3 +1,3 @@
-# Python dependencies for Graphical Text Renderer
+mypy==1.15.0; # Python dependencies for Graphical Text Renderer
 # Add dependencies here as needed
 
