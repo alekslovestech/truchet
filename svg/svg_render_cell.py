@@ -65,7 +65,7 @@ def _draw_cell_contours(ch: TileChar) -> str:
             return ""
 
 # tiles can be filled either as an hourglass (⧗) or a bowtie (⧓). They alternate, but the initial tile determines the rest
-def _draw_cell_fills(ch: TileChar, isEven: bool, init_tile_bowtie: bool) -> str:
+def _draw_bowtie_fills(ch: TileChar, isEven: bool, init_tile_flipped: bool) -> str:
     """
     SVG for filled regions in one cell. 
     """
@@ -75,7 +75,7 @@ def _draw_cell_fills(ch: TileChar, isEven: bool, init_tile_bowtie: bool) -> str:
     directions = available_directions(ch)
 
     cell=cell_pts()
-    if isEven == init_tile_bowtie:
+    if isEven == init_tile_flipped:
         if Direction.LEFT in directions:
             output += make_svg_triangle_points(
                 cell.top_left,
@@ -103,7 +103,7 @@ def _draw_cell_fills(ch: TileChar, isEven: bool, init_tile_bowtie: bool) -> str:
             )
     return output
 
-def _draw_corner_fills(ch: TileChar, isEven: bool, init_tile_bowtie: bool, style: TileStyle) -> str:
+def _draw_corner_fills(ch: TileChar, isEven: bool, init_tile_flipped: bool, style: TileStyle) -> str:
     """
     SVG for filled circular arcs in one cell. 
     """
@@ -115,7 +115,7 @@ def _draw_corner_fills(ch: TileChar, isEven: bool, init_tile_bowtie: bool, style
 
     cell = cell_pts()
     radius = CELL_SIZE / 2
-    if isEven == init_tile_bowtie:
+    if isEven == init_tile_flipped:
         
         if Corners.TOP_LEFT in corners:
             output += _fill_quadrant(cell.top_left, cell.top_mid_left, cell.left_mid_top, style)
@@ -128,7 +128,7 @@ def _draw_corner_fills(ch: TileChar, isEven: bool, init_tile_bowtie: bool, style
             output += _fill_quadrant(cell.bottom_left, cell.bottom_mid_left, cell.left_mid_bottom, style)
     return output
 
-def draw_cell(ch: TileChar, isEven: bool, init_tile_bowtie: bool, style: TileStyle) -> str:
+def draw_cell(ch: TileChar, isEven: bool, init_tile_flipped: bool, style: TileStyle) -> str:
     """
     SVG for one cell. 
     """
@@ -137,7 +137,7 @@ def draw_cell(ch: TileChar, isEven: bool, init_tile_bowtie: bool, style: TileSty
     output = ""
     if style == TileStyle.BOWTIE:
         output += _draw_cell_contours(ch)
-        output += _draw_cell_fills(ch, isEven, init_tile_bowtie)
+        output += _draw_bowtie_fills(ch, isEven, init_tile_flipped)
     elif style == TileStyle.CIRCLE or style == TileStyle.TRIANGLE:
-        output += _draw_corner_fills(ch, isEven, init_tile_bowtie, style)
+        output += _draw_corner_fills(ch, isEven, init_tile_flipped, style)
     return output
