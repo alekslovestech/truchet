@@ -32,7 +32,7 @@ def _make_svg_grid_lines(cols: int, rows: int, cell_size: int) -> str:
     return grid
 
 
-def lines_to_svg(lines: list[str], init_tile_bowtie: bool, style: TileStyle = TileStyle.BOWTIE) -> str:
+def lines_to_svg(lines: list[str], init_tile_flipped: bool, style: TileStyle = TileStyle.BOWTIE) -> str:
     """
     Convert a 2D grid of characters (list of rows) to an SVG string.
     Each character uses draw_cell_fills (top/bottom triangles) and draw_cell_contours (lines and half-segments).
@@ -55,7 +55,7 @@ def lines_to_svg(lines: list[str], init_tile_bowtie: bool, style: TileStyle = Ti
             y = r * cell_size
             isEven = (r + c) % 2 == 0
             tileChar: TileChar = ch  # type: ignore
-            cell = draw_cell(tileChar, isEven, init_tile_bowtie, style)
+            cell = draw_cell(tileChar, isEven, init_tile_flipped, style)
             output = (
                 f'<g transform="translate({x},{y})" stroke="{STROKE_CONTOUR}" fill="none" stroke-width="1">'
                 + cell

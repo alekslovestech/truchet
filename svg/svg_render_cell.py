@@ -1,41 +1,11 @@
-from tiles import Direction, TileChar, Corners, available_directions, available_corners
+from tiles import Direction, TileChar, Corners, available_directions, unavailable_corners
 from tilestyle import TileStyle
-from .svg_utils import make_svg_line_points, make_svg_triangle_points, FILL_TRIANGLE
-from .cell_constants import CELL_FRACTION, CELL_SIZE, cell_pts
+from .svg_utils import make_svg_line_points
+from .cell_constants import CELL_SIZE, cell_pts
+from .svg_render_cell_parts import fill_quadrant, empty_quadrant, bowtie_triangle
 
 STROKE_CONTOUR = "#111"
 STROKE_GRID = "#ccc"
-
-def _fill_circle_quadrant(
-    corner: tuple[float, float],
-    pt1: tuple[float, float],
-    pt2: tuple[float, float],
-) -> str:
-    """
-    SVG path for a circular quadrant: arc from pt1 to pt2.
-    Sweep direction is derived from corner (main diagonal = clockwise).
-    """
-    radius = CELL_FRACTION
-    sweep = 1 if corner[0] == corner[1] else 0
-    return (
-        f'<path d="M {corner[0]} {corner[1]} '
-        f'L {pt1[0]} {pt1[1]} '
-        f'A {radius} {radius} 0 0 {sweep} {pt2[0]} {pt2[1]} Z" '
-        f'fill="{FILL_TRIANGLE}" stroke="none"/>'
-    )
-
-def _fill_quadrant(corner: tuple[float, float],
-    pt1: tuple[float, float],
-    pt2: tuple[float, float], style: TileStyle, isHalf = False) -> str:
-    """
-    SVG for a filled quadrant.
-    """
-    if style == TileStyle.BOWTIE:
-        raise ValueError("Invalid style: BOWTIE is not supported for fill_quadrant")
-    elif style == TileStyle.CIRCLE:
-        return _fill_circle_quadrant(corner, pt1, pt2)
-    elif style == TileStyle.TRIANGLE:
-        return make_svg_triangle_points(corner, pt1, pt2)
 
 def _draw_cell_contours(ch: TileChar) -> str:
     """
@@ -77,28 +47,24 @@ def _draw_bowtie_fills(ch: TileChar, isEven: bool, init_tile_flipped: bool) -> s
     cell=cell_pts()
     if isEven == init_tile_flipped:
         if Direction.LEFT in directions:
-            output += make_svg_triangle_points(
+            output += bowtie_triangle(
                 cell.top_left,
-                cell.center,
                 cell.bottom_left
             )            
         if Direction.RIGHT in directions:
-            output += make_svg_triangle_points(
+            output += bowtie_triangle(
                 cell.top_right,
-                cell.center,
                 cell.bottom_right
             )
     else:
         if Direction.TOP in directions:
-            output += make_svg_triangle_points(
+            output += bowtie_triangle(
                 cell.top_left,
-                cell.center,
                 cell.top_right
             )
         if Direction.BOTTOM in directions:
-            output += make_svg_triangle_points(
+            output += bowtie_triangle(
                 cell.bottom_left,
-                cell.center,
                 cell.bottom_right
             )
     return output
@@ -110,23 +76,38 @@ def _draw_corner_fills(ch: TileChar, isEven: bool, init_tile_flipped: bool, styl
     if ch == " ":
         return ""
     output = ""
-    corners = available_corners(ch)
-    directions = available_directions(ch)
 
     cell = cell_pts()
-    radius = CELL_SIZE / 2
-    if isEven == init_tile_flipped:
-        
-        if Corners.TOP_LEFT in corners:
-            output += _fill_quadrant(cell.top_left, cell.top_mid_left, cell.left_mid_top, style)
-        if Corners.BOTTOM_RIGHT in corners:
-            output += _fill_quadrant(cell.bottom_right, cell.bottom_mid_right, cell.right_mid_bottom, style)
+    if isEven == init_tile_flipped:        
+        output += fill_quadrant(cell.top_left, cell.top_mid_left, cell.left_mid_top, style)
+        output += fill_quadrant(cell.bottom_right, cell.bottom_mid_right, cell.right_mid_bottom, style)
     else:
-        if Corners.TOP_RIGHT in corners:
-            output += _fill_quadrant(cell.top_right, cell.top_mid_right, cell.right_mid_top, style)
-        if Corners.BOTTOM_LEFT in corners:
-            output += _fill_quadrant(cell.bottom_left, cell.bottom_mid_left, cell.left_mid_bottom, style)
+        output += fill_quadrant(cell.top_right, cell.top_mid_right, cell.right_mid_top, style)
+        output += fill_quadrant(cell.bottom_left, cell.bottom_mid_left, cell.left_mid_bottom, style)
+    
     return output
+
+def _draw_direction_exclusions(ch: TileChar, style: TileStyle) -> str:
+    """
+    SVG excluded corners based on the tile character.
+    """
+    if ch == " " or ch == "X":
+        return ""
+        
+    corners = unavailable_corners(ch)
+    cell = cell_pts()
+    
+    output = ""    
+    if Corners.TOP_LEFT in corners:
+        output += empty_quadrant(cell.top_left, cell.top_right, cell.bottom_left)
+    if Corners.BOTTOM_RIGHT in corners:
+        output += empty_quadrant(cell.bottom_right, cell.bottom_left, cell.top_right)
+    if Corners.TOP_RIGHT in corners:
+        output += empty_quadrant(cell.top_right, cell.bottom_right, cell.top_left)
+    if Corners.BOTTOM_LEFT in corners:
+        output += empty_quadrant(cell.bottom_left, cell.top_left, cell.bottom_right)    
+
+    return output    
 
 def draw_cell(ch: TileChar, isEven: bool, init_tile_flipped: bool, style: TileStyle) -> str:
     """
@@ -140,4 +121,5 @@ def draw_cell(ch: TileChar, isEven: bool, init_tile_flipped: bool, style: TileSt
         output += _draw_bowtie_fills(ch, isEven, init_tile_flipped)
     elif style == TileStyle.CIRCLE or style == TileStyle.TRIANGLE:
         output += _draw_corner_fills(ch, isEven, init_tile_flipped, style)
+        output += _draw_direction_exclusions(ch, style)
     return output

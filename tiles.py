@@ -2,7 +2,7 @@
 Tile/character operations for Truchet-style glyphs.
 """
 from enum import Enum
-from typing import Literal, TypeGuard
+from typing import Literal
 
 TileChar = Literal[" ", "X", "λ", "ɣ", "y", "ʎ"]
 
@@ -56,6 +56,19 @@ def available_corners(ch: TileChar) -> list[Corners]:
             return [Corners.TOP_LEFT, Corners.BOTTOM_LEFT, Corners.TOP_RIGHT]
         case "ʎ":
             return [Corners.BOTTOM_RIGHT, Corners.BOTTOM_LEFT, Corners.TOP_RIGHT]
+        case _:
+            return []
+
+def unavailable_corners(ch: TileChar) -> list[Corners]:
+    match ch:        
+        case "λ":
+            return [Corners.TOP_RIGHT]
+        case "ɣ":
+            return [Corners.BOTTOM_LEFT]
+        case "y":
+            return [Corners.BOTTOM_RIGHT]
+        case "ʎ":
+            return [Corners.TOP_LEFT]
         case _:
             return []
 
